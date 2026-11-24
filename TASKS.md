@@ -58,7 +58,7 @@ Dependències: resum → filtre per assignatura → cerca per paraula clau i com
 
 ### Tasques d'Execució:
 
-- [ ] Tasca 3.1: Implementació del resum estadístic: afegir `list --summary` amb els recomptes de total, pendents, completades, caducades i urgents, excloure les tasques completades del recompte temporal, aplicar el format exacte amb registre buit a zero i rebutjar la combinació amb filtres amb el missatge d'error definit. (Requisits RF-02, RF-26, RF-27, RF-28, RF-29, RF-30, RF-31, RF-32, RF-38, RF-41 i RF-42; escenaris GS-23, GS-24, GS-25, GS-26, GS-35, GS-36, GS-37 i GS-40)
+- [x] Tasca 3.1: Implementació del resum estadístic: afegir `list --summary` amb els recomptes de total, pendents, completades, caducades i urgents, excloure les tasques completades del recompte temporal, aplicar el format exacte amb registre buit a zero i rebutjar la combinació amb filtres amb el missatge d'error definit. (Requisits RF-02, RF-26, RF-27, RF-28, RF-29, RF-30, RF-31, RF-32, RF-38, RF-41 i RF-42; escenaris GS-23, GS-24, GS-25, GS-26, GS-35, GS-36, GS-37 i GS-40)
 
 - [ ] Tasca 3.2: Filtratge per assignatura: afegir `list --subject ASSIGNATURA` amb coincidència exacta insensible a majúscules i minúscules, missatge de sense coincidències i conservació del format i les etiquetes del llistat. (Requisits RF-02, RF-33, RF-34, RF-39, RF-40, RF-42 i RF-43; escenaris GS-27, GS-28, GS-29, GS-38, GS-39 i GS-41)
 

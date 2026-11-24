@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import re
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -14,6 +15,11 @@ RUTA_ARREL = Path(__file__).resolve().parent.parent
 RUTA_DADES = RUTA_ARREL / "data" / "tasks.json"
 MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
 MISSATGE_ESTAT_INVALID = "Error: estat no vàlid. Valors permesos: pendent, completada."
+MISSATGE_RESUM_FILTRES = (
+    "Error: --summary no es pot combinar amb --subject ni --keyword."
+)
+ETIQUETA_CADUCADA = " [CADUCADA]"
+ETIQUETA_URGENT = " [URGENT]"
 ESTAT_PENDENT = "pendent"
 ESTAT_COMPLETADA = "completada"
 ESTATS = (ESTAT_PENDENT, ESTAT_COMPLETADA)
@@ -45,10 +51,25 @@ def etiqueta_tasca(tasca, avui):
         return ""
     dies = (venciment - avui).days
     if dies < 0:
-        return " [CADUCADA]"
+        return ETIQUETA_CADUCADA
     if dies <= 6:
-        return " [URGENT]"
+        return ETIQUETA_URGENT
     return ""
+
+
+def te_combinacio_resum_filtres(arguments):
+    return (
+        bool(arguments)
+        and arguments[0] == "list"
+        and "--summary" in arguments
+        and any(
+            argument == "--subject"
+            or argument.startswith("--subject=")
+            or argument == "--keyword"
+            or argument.startswith("--keyword=")
+            for argument in arguments
+        )
+    )
 
 
 def carregar_tasques():
@@ -153,6 +174,31 @@ def llistar_tasques():
         print(línia)
 
 
+def mostrar_resum():
+    tasques = carregar_tasques()
+    avui = data_referencia()
+    pendents = 0
+    completades = 0
+    caducades = 0
+    urgents = 0
+    for tasca in tasques:
+        if tasca.estat == ESTAT_PENDENT:
+            pendents += 1
+        elif tasca.estat == ESTAT_COMPLETADA:
+            completades += 1
+        etiqueta = etiqueta_tasca(tasca, avui)
+        if etiqueta == ETIQUETA_CADUCADA:
+            caducades += 1
+        elif etiqueta == ETIQUETA_URGENT:
+            urgents += 1
+    print("Resum de tasques:")
+    print(f"- Total: {len(tasques)}")
+    print(f"- Pendents: {pendents}")
+    print(f"- Completades: {completades}")
+    print(f"- Caducades: {caducades}")
+    print(f"- Urgents: {urgents}")
+
+
 def construir_parser():
     parser = argparse.ArgumentParser(
         prog="tasks_app",
@@ -216,14 +262,22 @@ def construir_parser():
         type=int,
         help="Identificador de la tasca.",
     )
-    comandaments.add_parser(
+    llistat = comandaments.add_parser(
         "list",
         help="Mostra totes les tasques registrades.",
+    )
+    llistat.add_argument(
+        "--summary",
+        action="store_true",
+        help="Mostra un resum estadístic de les tasques.",
     )
     return parser
 
 
 def main():
+    if te_combinacio_resum_filtres(sys.argv[1:]):
+        print(MISSATGE_RESUM_FILTRES)
+        return
     arguments = construir_parser().parse_args()
     if arguments.comandament == "add":
         afegir_tasca(arguments.title, arguments.subject, arguments.due)
@@ -238,7 +292,10 @@ def main():
     elif arguments.comandament == "complete":
         completar_tasca(arguments.id)
     elif arguments.comandament == "list":
-        llistar_tasques()
+        if arguments.summary:
+            mostrar_resum()
+        else:
+            llistar_tasques()
 
 
 if __name__ == "__main__":
