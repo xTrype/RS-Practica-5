@@ -13,8 +13,12 @@ except ImportError:
 
 RUTA_ARREL = Path(__file__).resolve().parent.parent
 RUTA_DADES = RUTA_ARREL / "data" / "tasks.json"
-MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
-MISSATGE_ESTAT_INVALID = "Error: estat no vàlid. Valors permesos: pendent, completada."
+MISSATGE_DATA_INVALIDA = (
+    "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
+)
+MISSATGE_ESTAT_INVALID = (
+    "Error: estat no vàlid. Valors permesos: pendent, completada."
+)
 MISSATGE_RESUM_FILTRES = (
     "Error: --summary no es pot combinar amb --subject ni --keyword."
 )

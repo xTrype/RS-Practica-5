@@ -66,4 +66,4 @@ Dependències: resum → filtre per assignatura → cerca per paraula clau i com
 
 - [x] Tasca 3.4: Tests d'integració dels nous escenaris Gherkin: estendre `test/test_tasks_app.py` amb GS-23 a GS-43, fixant `TASKS_TODAY=2026-06-15` quan calgui i treballant sobre còpies aïllades de `data/tasks.json`, amb verificació de format, missatges d'error i no modificació de les dades. (Requisits RF-26 a RF-43; escenaris GS-23 a GS-43; directives de proves de dates d'`AGENTS.md`)
 
-- [ ] Tasca 3.5: Validació final i proves de regressió: executar `python3 -m pytest test -v`, verificar RF-01 a RF-43 i GS-01 a GS-43, comprovar la compatibilitat dels formats dels sprints 1 i 2 i confirmar que les dades originals resten intactes. (Requisits RF-01 a RF-43; escenaris GS-01 a GS-43)
+- [x] Tasca 3.5: Validació final i proves de regressió: executar `python3 -m pytest test -v`, verificar RF-01 a RF-43 i GS-01 a GS-43, comprovar la compatibilitat dels formats dels sprints 1 i 2 i confirmar que les dades originals resten intactes. (Requisits RF-01 a RF-43; escenaris GS-01 a GS-43)

@@ -17,7 +17,9 @@ ENTORN_SENSE_REFERENCIA = {
     for clau, valor in os.environ.items()
     if clau != "TASKS_TODAY"
 }
-MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
+MISSATGE_DATA_INVALIDA = (
+    "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
+)
 MISSATGE_ID_INVALID = "Error: no existeix la tasca amb ID 99."
 MISSATGE_SENSE_COINCIDENCIES = (
     "No s'han trobat tasques que compleixin els filtres."
