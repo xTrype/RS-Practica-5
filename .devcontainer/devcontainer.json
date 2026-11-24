@@ -1,0 +1,17 @@
+{
+  "name": "Practica Sessió 5 ",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "sst-dev.opencode" 
+      ]
+    }
+  },
+
+  // EXPLICACIO DE LA COMANDA AUTOMATICA DE SOTA:
+  // 1. Descarrega i instal.la el CLI d'OpenCode nativament dins de Linux (Ubuntu).
+  // 2. Instal.la els paquets del requirements.txt
+  "postCreateCommand": "curl -fsSL https://opencode.ai/install | bash && if [ -f requirements.txt ]; then pip install --user -r requirements.txt; fi "
+}

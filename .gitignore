@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Fitxers temporals i locals
+.DS_Store
+*.swp
+*.tmp
+*.bak
+*.log
+*~
+.vscode/
+.idea/
+
+# Credencials i configuració privada
+.env
+.env.*
+!.env.example
+.envrc
+.netrc
+.pypirc
+.aws/
+.ssh/
+secrets/
+credentials.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
