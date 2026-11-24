@@ -38,7 +38,7 @@ Dependències: model/persistència → dates → edició → finalització → e
 
 - [x] Tasca 2.3: Implementació de la modificació de tasques: afegir `edit --id ID` per a `--title`, `--subject`, `--due` i `--status`, mantenir l'ID i els camps no indicats, i gestionar identificadors inexistents. (Requisits RF-12, RF-13, RF-14, RF-15, RF-18 i RF-19; escenaris GS-08, GS-09, GS-10 i GS-20)
 
-- [ ] Tasca 2.4: Implementació de la finalització de tasques: afegir `complete --id ID` per a establir l'estat `completada` i gestionar identificadors inexistents sense modificar les dades. (Requisits RF-16, RF-17, RF-18 i RF-19; escenaris GS-11 i GS-12)
+- [x] Tasca 2.4: Implementació de la finalització de tasques: afegir `complete --id ID` per a establir l'estat `completada` i gestionar identificadors inexistents sense modificar les dades. (Requisits RF-16, RF-17, RF-18 i RF-19; escenaris GS-11 i GS-12)
 
 - [ ] Tasca 2.5: Identificació de tasques urgents i caducades: calcular les etiquetes `[CADUCADA]` i `[URGENT]` a `list` amb la data de referència controlada, excloent tasques sense data, completades i del dia +7. (Requisits RF-20, RF-21, RF-22, RF-23, RF-24 i RF-25; escenaris GS-13, GS-14, GS-15, GS-16, GS-17, GS-18, GS-19, GS-21 i GS-22)
 

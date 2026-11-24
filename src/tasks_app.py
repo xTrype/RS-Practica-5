@@ -13,7 +13,8 @@ RUTA_ARREL = Path(__file__).resolve().parent.parent
 RUTA_DADES = RUTA_ARREL / "data" / "tasks.json"
 MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
 MISSATGE_ESTAT_INVALID = "Error: estat no vàlid. Valors permesos: pendent, completada."
-ESTATS = ("pendent", "completada")
+ESTAT_COMPLETADA = "completada"
+ESTATS = ("pendent", ESTAT_COMPLETADA)
 
 
 def es_data_valida(cadena):
@@ -97,6 +98,20 @@ def modificar_tasca(
     print(f"Tasca [ID: {tasca.id}] actualitzada amb èxit")
 
 
+def completar_tasca(identificador):
+    tasques = carregar_tasques()
+    tasca = next(
+        (element for element in tasques if element.id == identificador),
+        None,
+    )
+    if tasca is None:
+        print(f"Error: no existeix la tasca amb ID {identificador}.")
+        return
+    tasca.estat = ESTAT_COMPLETADA
+    desar_tasques(tasques)
+    print(f"Tasca [ID: {tasca.id}] completada amb èxit")
+
+
 def llistar_tasques():
     tasques = carregar_tasques()
     if not tasques:
@@ -162,6 +177,16 @@ def construir_parser():
         "--status",
         help="Nou estat: pendent o completada.",
     )
+    finalitzar = comandaments.add_parser(
+        "complete",
+        help="Marca una tasca com a completada.",
+    )
+    finalitzar.add_argument(
+        "--id",
+        required=True,
+        type=int,
+        help="Identificador de la tasca.",
+    )
     comandaments.add_parser(
         "list",
         help="Mostra totes les tasques registrades.",
@@ -181,6 +206,8 @@ def main():
             arguments.due,
             arguments.status,
         )
+    elif arguments.comandament == "complete":
+        completar_tasca(arguments.id)
     elif arguments.comandament == "list":
         llistar_tasques()
 
