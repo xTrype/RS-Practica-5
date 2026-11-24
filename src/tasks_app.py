@@ -171,7 +171,7 @@ def formatejar_tasca(tasca, avui):
     return línia
 
 
-def llistar_tasques(assignatura=None):
+def llistar_tasques(assignatura=None, paraula_clau=None):
     tasques = carregar_tasques()
     if assignatura is not None:
         assignatura_normalitzada = assignatura.casefold()
@@ -180,6 +180,14 @@ def llistar_tasques(assignatura=None):
             for tasca in tasques
             if tasca.assignatura.casefold() == assignatura_normalitzada
         ]
+    if paraula_clau is not None:
+        clau_normalitzada = paraula_clau.casefold()
+        tasques = [
+            tasca
+            for tasca in tasques
+            if clau_normalitzada in tasca.títol.casefold()
+        ]
+    if assignatura is not None or paraula_clau is not None:
         if not tasques:
             print(MISSATGE_SENSE_COINCIDENCIES)
             return
@@ -292,6 +300,10 @@ def construir_parser():
         "--subject",
         help="Filtra per assignatura amb coincidència exacta.",
     )
+    llistat.add_argument(
+        "--keyword",
+        help="Cerca tasques per paraula clau al títol.",
+    )
     return parser
 
 
@@ -316,7 +328,7 @@ def main():
         if arguments.summary:
             mostrar_resum()
         else:
-            llistar_tasques(arguments.subject)
+            llistar_tasques(arguments.subject, arguments.keyword)
 
 
 if __name__ == "__main__":

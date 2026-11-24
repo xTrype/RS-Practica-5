@@ -62,7 +62,7 @@ Dependències: resum → filtre per assignatura → cerca per paraula clau i com
 
 - [x] Tasca 3.2: Filtratge per assignatura: afegir `list --subject ASSIGNATURA` amb coincidència exacta insensible a majúscules i minúscules, missatge de sense coincidències i conservació del format i les etiquetes del llistat. (Requisits RF-02, RF-33, RF-34, RF-39, RF-40, RF-42 i RF-43; escenaris GS-27, GS-28, GS-29, GS-38, GS-39 i GS-41)
 
-- [ ] Tasca 3.3: Cerca per paraula clau i combinació de filtres: afegir `list --keyword PARAULA` amb coincidència parcial insensible a majúscules i minúscules, i fer que `--subject` i `--keyword` combinats exigeixin ambdues condicions. (Requisits RF-02, RF-35, RF-36, RF-37, RF-39, RF-40 i RF-42; escenaris GS-30, GS-31, GS-32, GS-33, GS-34, GS-38, GS-39, GS-42 i GS-43)
+- [x] Tasca 3.3: Cerca per paraula clau i combinació de filtres: afegir `list --keyword PARAULA` amb coincidència parcial insensible a majúscules i minúscules, i fer que `--subject` i `--keyword` combinats exigeixin ambdues condicions. (Requisits RF-02, RF-35, RF-36, RF-37, RF-39, RF-40 i RF-42; escenaris GS-30, GS-31, GS-32, GS-33, GS-34, GS-38, GS-39, GS-42 i GS-43)
 
 - [ ] Tasca 3.4: Tests d'integració dels nous escenaris Gherkin: estendre `test/test_tasks_app.py` amb GS-23 a GS-43, fixant `TASKS_TODAY=2026-06-15` quan calgui i treballant sobre còpies aïllades de `data/tasks.json`, amb verificació de format, missatges d'error i no modificació de les dades. (Requisits RF-26 a RF-43; escenaris GS-23 a GS-43; directives de proves de dates d'`AGENTS.md`)
 
