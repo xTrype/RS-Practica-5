@@ -18,6 +18,9 @@ MISSATGE_ESTAT_INVALID = "Error: estat no vàlid. Valors permesos: pendent, comp
 MISSATGE_RESUM_FILTRES = (
     "Error: --summary no es pot combinar amb --subject ni --keyword."
 )
+MISSATGE_SENSE_COINCIDENCIES = (
+    "No s'han trobat tasques que compleixin els filtres."
+)
 ETIQUETA_CADUCADA = " [CADUCADA]"
 ETIQUETA_URGENT = " [URGENT]"
 ESTAT_PENDENT = "pendent"
@@ -157,21 +160,35 @@ def completar_tasca(identificador):
     print(f"Tasca [ID: {tasca.id}] completada amb èxit")
 
 
-def llistar_tasques():
+def formatejar_tasca(tasca, avui):
+    línia = (
+        f"[{tasca.id}] {tasca.títol} ({tasca.assignatura}) "
+        f"- estat: {tasca.estat}"
+    )
+    if tasca.data_límit is not None:
+        línia += f" - data límit: {tasca.data_límit}"
+        línia += etiqueta_tasca(tasca, avui)
+    return línia
+
+
+def llistar_tasques(assignatura=None):
     tasques = carregar_tasques()
-    if not tasques:
+    if assignatura is not None:
+        assignatura_normalitzada = assignatura.casefold()
+        tasques = [
+            tasca
+            for tasca in tasques
+            if tasca.assignatura.casefold() == assignatura_normalitzada
+        ]
+        if not tasques:
+            print(MISSATGE_SENSE_COINCIDENCIES)
+            return
+    elif not tasques:
         print("Registre de tasques buit.")
         return
     avui = data_referencia()
     for tasca in tasques:
-        línia = (
-            f"[{tasca.id}] {tasca.títol} ({tasca.assignatura}) "
-            f"- estat: {tasca.estat}"
-        )
-        if tasca.data_límit is not None:
-            línia += f" - data límit: {tasca.data_límit}"
-            línia += etiqueta_tasca(tasca, avui)
-        print(línia)
+        print(formatejar_tasca(tasca, avui))
 
 
 def mostrar_resum():
@@ -271,6 +288,10 @@ def construir_parser():
         action="store_true",
         help="Mostra un resum estadístic de les tasques.",
     )
+    llistat.add_argument(
+        "--subject",
+        help="Filtra per assignatura amb coincidència exacta.",
+    )
     return parser
 
 
@@ -295,7 +316,7 @@ def main():
         if arguments.summary:
             mostrar_resum()
         else:
-            llistar_tasques()
+            llistar_tasques(arguments.subject)
 
 
 if __name__ == "__main__":
