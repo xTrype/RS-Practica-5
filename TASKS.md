@@ -44,4 +44,4 @@ Dependències: model/persistència → dates → edició → finalització → e
 
 - [x] Tasca 2.6: Tests d'integració dels nous escenaris Gherkin: estendre `test/test_tasks_app.py` amb GS-04 a GS-22, fixant `TASKS_TODAY=2026-06-15` llevat de GS-22, que no el defineix i no altera el rellotge, i treballant sobre còpies aïllades de `data/tasks.json`. (Requisits RF-05 a RF-25; escenaris GS-04 a GS-22; directives de proves de dates d'`AGENTS.md`)
 
-- [ ] Tasca 2.7: Validació final i proves de regressió: executar `python3 -m pytest test`, verificar RF-01 a RF-25 i GS-01 a GS-22, i comprovar que les dades originals resten intactes. (Requisits RF-01 a RF-25; escenaris GS-01 a GS-22)
+- [x] Tasca 2.7: Validació final i proves de regressió: executar `python3 -m pytest test`, verificar RF-01 a RF-25 i GS-01 a GS-22, i comprovar que les dades originals resten intactes. (Requisits RF-01 a RF-25; escenaris GS-01 a GS-22)
