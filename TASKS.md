@@ -32,7 +32,7 @@ Dependències: model/persistència → dates → edició → finalització → e
 
 ### Tasques d'Execució:
 
-- [ ] Tasca 2.1: Adaptació del model de dades i persistència: afegir el camp opcional `data_límit` a `src/models.py`, serialitzar-lo a `data/tasks.json` i preservar les tasques del sprint 1 sense aquest camp. (Requisits RF-01, RF-05, RF-08 i RF-09; escenaris GS-04 i GS-05)
+- [x] Tasca 2.1: Adaptació del model de dades i persistència: afegir el camp opcional `data_límit` a `src/models.py`, serialitzar-lo a `data/tasks.json` i preservar les tasques del sprint 1 sense aquest camp. (Requisits RF-01, RF-05, RF-08 i RF-09; escenaris GS-04 i GS-05)
 
 - [ ] Tasca 2.2: Incorporació i validació de dates límit: acceptar `--due YYYY-MM-DD` a `add`, conservar el missatge de confirmació i rebutjar formats incorrectes o dates inexistents sense desar res. (Requisits RF-06, RF-07, RF-10 i RF-11; escenaris GS-04, GS-06, GS-07 i GS-20)
 

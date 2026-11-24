@@ -10,6 +10,7 @@ class Task:
     títol: str
     assignatura: str
     estat: str = ESTAT_PENDENT
+    data_límit: str | None = None
 
     @property
     def title(self):
@@ -24,12 +25,15 @@ class Task:
         return self.estat
 
     def to_dict(self):
-        return {
+        dades = {
             "id": self.id,
             "títol": self.títol,
             "assignatura": self.assignatura,
             "estat": self.estat,
         }
+        if self.data_límit is not None:
+            dades["data_límit"] = self.data_límit
+        return dades
 
     @classmethod
     def from_dict(cls, dades):
@@ -38,6 +42,10 @@ class Task:
             títol=dades.get("títol", dades.get("title")),
             assignatura=dades.get("assignatura", dades.get("subject")),
             estat=dades.get("estat", dades.get("status", ESTAT_PENDENT)),
+            data_límit=dades.get(
+                "data_límit",
+                dades.get("due_date", dades.get("due")),
+            ),
         )
 
     def to_json(self):
