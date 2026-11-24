@@ -347,7 +347,7 @@ Els requisits RF-01 a RF-25 dels sprints anteriors es conserven sense canvis. El
 - RF-39: Quan una consulta amb filtres no troba cap tasca, el sistema tasks_app HA DE mostrar el missatge `No s'han trobat tasques que compleixin els filtres.`
 - RF-40: El sistema tasks_app HA DE mostrar les tasques filtrades amb el mateix format de línia i les mateixes etiquetes `[CADUCADA]` i `[URGENT]` que el comandament `list` del sprint 2.
 - RF-41: El sistema tasks_app HA DE mostrar el resum amb el format exacte definit a la secció 7.3, inclòs el cas de registre buit amb tots els recomptes a zero.
-- RF-42: El sistema tasks_app HA DE mantenir `data/tasks.json` sense cap modificació després d'executar `list` amb `--summary`, `--subject`, `--keyword` o una combinació d'aquestes opcions.
+- RF-42: Quan `data/tasks.json` ja existeix, el sistema tasks_app HA DE mantenir el fitxer sense cap modificació després d'executar una consulta vàlida amb `list --summary`, `list --subject`, `list --keyword` o una combinació d'aquestes opcions.
 - RF-43: El sistema tasks_app HA DE conservar el missatge `Registre de tasques buit.` per a `list` sense opcions quan el fitxer no conté cap tasca.
 
 ### 7.3 Formats exactes de sortida
@@ -381,6 +381,8 @@ Quan una consulta amb `--subject`, `--keyword` o ambdós filtres no troba cap ta
 No s'han trobat tasques que compleixin els filtres.
 ```
 
+Si `data/tasks.json` no existeix, s'aplica RF-02: la consulta vàlida crea el fitxer amb `[]` abans de mostrar la sortida. Així, `list --summary` mostra tots els recomptes a zero i les consultes amb filtres mostren el missatge de sense coincidències.
+
 Quan `--summary` es combina amb qualsevol filtre, es mostra exactament aquesta línia i cap altra:
 
 ```
@@ -393,7 +395,7 @@ Error: --summary no es pot combinar amb --subject ni --keyword.
 Registre de tasques buit.
 ```
 
-### 7.4 Criteris d'acceptació (GS-23 a GS-39)
+### 7.4 Criteris d'acceptació (GS-23 a GS-43)
 
 Els escenaris GS-01 a GS-22 dels sprints anteriors es conserven sense canvis.
 
@@ -467,12 +469,13 @@ Els escenaris GS-01 a GS-22 dels sprints anteriors es conserven sense canvis.
     | 1  | Pràctica 1 | RS          | pendent | 2026-06-14 |
     | 2  | Pràctica 2 | rs          | pendent | 2026-06-20 |
     | 3  | Examen     | SO          | pendent |            |
+    | 4  | Pràctica 4 | RST         | pendent |            |
 
   Quan l'estudiant executa `python src/tasks_app.py list --subject rs`
   Aleshores el sistema mostra:
     "[1] Pràctica 1 (RS) - estat: pendent - data límit: 2026-06-14 [CADUCADA]"
     "[2] Pràctica 2 (rs) - estat: pendent - data límit: 2026-06-20 [URGENT]"
-  I no mostra la tasca amb assignatura `SO`.
+  I no mostra les tasques amb assignatura `SO` ni `RST`.
 
 - GS-28: Filtratge per assignatura sense coincidències
   Atès que el fitxer `data/tasks.json` conté una tasca amb `assignatura` `SO`
@@ -574,8 +577,38 @@ Els escenaris GS-01 a GS-22 dels sprints anteriors es conserven sense canvis.
   Aleshores el sistema mostra la tasca coincident amb el format del sprint 2
   I el fitxer `data/tasks.json` roman byte a byte sense cap modificació.
 
+- GS-40: Inicialització del fitxer amb `list --summary`
+  Atès que el fitxer `data/tasks.json` no existeix
+  Quan l'estudiant executa `python src/tasks_app.py list --summary`
+  Aleshores el sistema mostra:
+    "Resum de tasques:"
+    "- Total: 0"
+    "- Pendents: 0"
+    "- Completades: 0"
+    "- Caducades: 0"
+    "- Urgents: 0"
+  I el fitxer `data/tasks.json` s'ha creat amb el contingut `[]`, segons RF-02.
+
+- GS-41: Inicialització del fitxer amb filtre per assignatura
+  Atès que el fitxer `data/tasks.json` no existeix
+  Quan l'estudiant executa `python src/tasks_app.py list --subject RS`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+  I el fitxer `data/tasks.json` s'ha creat amb el contingut `[]`, segons RF-02.
+
+- GS-42: Inicialització del fitxer amb cerca per paraula clau
+  Atès que el fitxer `data/tasks.json` no existeix
+  Quan l'estudiant executa `python src/tasks_app.py list --keyword pràctica`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+  I el fitxer `data/tasks.json` s'ha creat amb el contingut `[]`, segons RF-02.
+
+- GS-43: Inicialització del fitxer amb filtres combinats
+  Atès que el fitxer `data/tasks.json` no existeix
+  Quan l'estudiant executa `python src/tasks_app.py list --subject RS --keyword pràctica`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+  I el fitxer `data/tasks.json` s'ha creat amb el contingut `[]`, segons RF-02.
+
 ### 7.5 Data de referència, aïllament i no modificació
 
-Tots els escenaris GS-23 a GS-39 fixen la data de referència amb `TASKS_TODAY=2026-06-15` quan la sortida depèn de dates, reutilitzant els límits de la secció 6.5: caducada el 2026-06-14, urgent del 2026-06-15 al 2026-06-21, i sense etiqueta a partir del 2026-06-22. Cap escenari modifica el rellotge del sistema.
+Tots els escenaris GS-23 a GS-43 fixen la data de referència amb `TASKS_TODAY=2026-06-15` quan la sortida depèn de dates, reutilitzant els límits de la secció 6.5: caducada el 2026-06-14, urgent del 2026-06-15 al 2026-06-21, i sense etiqueta a partir del 2026-06-22. Cap escenari modifica el rellotge del sistema.
 
-Les proves s'executen sobre una còpia aïllada de `data/tasks.json`, d'acord amb les directives de dates d'`AGENTS.md`. Les operacions de consulta (`--summary`, `--subject`, `--keyword` i les seves combinacions) són de només lectura: no han de crear, reescriure ni reordenar el fitxer de dades.
+Les proves s'executen sobre una còpia aïllada de `data/tasks.json`, d'acord amb les directives de dates d'`AGENTS.md`. Quan el fitxer ja existeix, les consultes vàlides (`--summary`, `--subject`, `--keyword` i la combinació d'ambdós filtres) són de només lectura: no el reescriuen ni el reordenen. Quan el fitxer no existeix, s'aplica RF-02 i la consulta vàlida el crea amb `[]`; en canvi, les combinacions invàlides de `--summary` amb filtres no són consultes vàlides i no creen el fitxer.
