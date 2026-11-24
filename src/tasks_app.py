@@ -1,5 +1,7 @@
 import argparse
 import json
+import re
+from datetime import date
 from pathlib import Path
 
 try:
@@ -9,6 +11,17 @@ except ImportError:
 
 RUTA_ARREL = Path(__file__).resolve().parent.parent
 RUTA_DADES = RUTA_ARREL / "data" / "tasks.json"
+MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
+
+
+def es_data_valida(cadena):
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", cadena) is None:
+        return False
+    try:
+        date.fromisoformat(cadena)
+    except ValueError:
+        return False
+    return True
 
 
 def carregar_tasques():
@@ -32,13 +45,17 @@ def desar_tasques(tasques):
         fitxer.write("\n")
 
 
-def afegir_tasca(títol, assignatura):
+def afegir_tasca(títol, assignatura, data_límit=None):
+    if data_límit is not None and not es_data_valida(data_límit):
+        print(MISSATGE_DATA_INVALIDA)
+        return
     tasques = carregar_tasques()
     identificador = max((tasca.id for tasca in tasques), default=0) + 1
     tasca = Task(
         id=identificador,
         títol=títol,
         assignatura=assignatura,
+        data_límit=data_límit,
     )
     tasques.append(tasca)
     desar_tasques(tasques)
@@ -80,6 +97,10 @@ def construir_parser():
         required=True,
         help="Assignatura de la tasca.",
     )
+    afegir.add_argument(
+        "--due",
+        help="Data límit amb format YYYY-MM-DD.",
+    )
     comandaments.add_parser(
         "list",
         help="Mostra totes les tasques registrades.",
@@ -90,7 +111,7 @@ def construir_parser():
 def main():
     arguments = construir_parser().parse_args()
     if arguments.comandament == "add":
-        afegir_tasca(arguments.title, arguments.subject)
+        afegir_tasca(arguments.title, arguments.subject, arguments.due)
     elif arguments.comandament == "list":
         llistar_tasques()
 
