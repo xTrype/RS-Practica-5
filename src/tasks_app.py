@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import re
 from datetime import date
 from pathlib import Path
@@ -13,8 +14,9 @@ RUTA_ARREL = Path(__file__).resolve().parent.parent
 RUTA_DADES = RUTA_ARREL / "data" / "tasks.json"
 MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
 MISSATGE_ESTAT_INVALID = "Error: estat no vàlid. Valors permesos: pendent, completada."
+ESTAT_PENDENT = "pendent"
 ESTAT_COMPLETADA = "completada"
-ESTATS = ("pendent", ESTAT_COMPLETADA)
+ESTATS = (ESTAT_PENDENT, ESTAT_COMPLETADA)
 
 
 def es_data_valida(cadena):
@@ -25,6 +27,28 @@ def es_data_valida(cadena):
     except ValueError:
         return False
     return True
+
+
+def data_referencia():
+    valor = os.environ.get("TASKS_TODAY")
+    if valor is not None and es_data_valida(valor):
+        return date.fromisoformat(valor)
+    return date.today()
+
+
+def etiqueta_tasca(tasca, avui):
+    if tasca.estat != ESTAT_PENDENT or tasca.data_límit is None:
+        return ""
+    try:
+        venciment = date.fromisoformat(tasca.data_límit)
+    except ValueError:
+        return ""
+    dies = (venciment - avui).days
+    if dies < 0:
+        return " [CADUCADA]"
+    if dies <= 6:
+        return " [URGENT]"
+    return ""
 
 
 def carregar_tasques():
@@ -117,11 +141,16 @@ def llistar_tasques():
     if not tasques:
         print("Registre de tasques buit.")
         return
+    avui = data_referencia()
     for tasca in tasques:
-        print(
+        línia = (
             f"[{tasca.id}] {tasca.títol} ({tasca.assignatura}) "
             f"- estat: {tasca.estat}"
         )
+        if tasca.data_límit is not None:
+            línia += f" - data límit: {tasca.data_límit}"
+            línia += etiqueta_tasca(tasca, avui)
+        print(línia)
 
 
 def construir_parser():
