@@ -1,9 +1,9 @@
-# SPECIFICATIONS.md — Sistema Tasks_app (v2.0)
+# SPECIFICATIONS.md — Sistema Tasks_app (v3.0)
 
 ## 1. Visió General
 Tasks_app és una eina CLI lleugera per ajudar als estudiants a gestionar les seves tasques acadèmiques diàries.
 
-La versió 2.0 afegeix la data límit, la modificació i la finalització de tasques i la identificació de tasques urgents i caducades, mantenint la compatibilitat amb les dades generades al sprint 1.
+La versió 2.0 va afegir la data límit, la modificació i la finalització de tasques i la identificació de tasques urgents i caducades, mantenint la compatibilitat amb les dades generades al sprint 1. La versió 3.0 afegeix el resum estadístic, el filtratge per assignatura i la cerca per paraula clau al títol, sense modificar els formats ni les dades dels sprints anteriors.
 
 ## 2. User Stories (Històries d'Usuari)
 - US-01: Com a estudiant, vull afegir una tasca amb títol i assignatura per tal de recordar els meus deures.
@@ -14,6 +14,11 @@ La versió 2.0 afegeix la data límit, la modificació i la finalització de tas
 - US-06: Com a estudiant, vull veure les etiquetes `[CADUCADA]` i `[URGENT]` per tal de prioritzar les tasques que requereixen atenció immediata.
 - US-07: Com a estudiant, vull rebre missatges d'error clars per tal de corregir les dades invàlides sense perdre les tasques desades.
 - US-08: Com a estudiant, vull disposar d'una data de referència controlada per tal de comprovar les etiquetes de manera reproducible.
+- US-09: Com a estudiant, vull veure un resum estadístic de les meves tasques per tal de conèixer ràpidament el meu estat general.
+- US-10: Com a estudiant, vull filtrar les tasques per assignatura per tal de treballar només amb una matèria concreta.
+- US-11: Com a estudiant, vull cercar tasques per paraula clau al títol per tal de localitzar ràpidament una tasca concreta.
+- US-12: Com a estudiant, vull combinar el filtre d'assignatura i la cerca per paraula clau per tal d'obtenir resultats més precisos.
+- US-13: Com a estudiant, vull rebre missatges clars quan una consulta no tingui coincidències o quan el resum es combini amb filtres per tal d'entendre el resultat obtingut.
 
 ## 3. Model de Dades (Mermaid)
 ```mermaid
@@ -315,3 +320,262 @@ Per a GS-22, `TASKS_TODAY` no es defineix i no es modifica el rellotge del siste
   Quan l'estudiant executa `python src/tasks_app.py list`
   Aleshores el sistema mostra `[1] Pràctica 1 (RS) - estat: pendent - data límit: 1970-01-01 [CADUCADA]`
   I el resultat prové de la data actual del sistema sense alterar el rellotge.
+
+## 7. Increment 3 — Resum, filtratge i cerca de tasques
+
+### 7.1 Històries d'usuari
+
+Les històries US-09 a US-13 de la secció 2 cobreixen el resum estadístic, el filtratge per assignatura, la cerca per paraula clau al títol, la combinació de filtres i els missatges clars davant de consultes sense resultat o combinacions invàlides.
+
+### 7.2 Requisits funcionals nous (RF-26 a RF-43)
+
+Els requisits RF-01 a RF-25 dels sprints anteriors es conserven sense canvis. Els requisits RF-26 a RF-43 segueixen rigorosament la plantilla SOPHIST (FunktionsMASTER) descrita a la secció 6.2.
+
+- RF-26: El sistema tasks_app HA DE donar a l'estudiant la possibilitat de mostrar un resum estadístic mitjançant `list --summary`.
+- RF-27: El sistema tasks_app HA DE mostrar al resum el nombre total de tasques registrades.
+- RF-28: El sistema tasks_app HA DE mostrar al resum el nombre de tasques amb estat `pendent`.
+- RF-29: El sistema tasks_app HA DE mostrar al resum el nombre de tasques amb estat `completada`.
+- RF-30: El sistema tasks_app HA DE mostrar al resum el nombre de tasques pendents caducades, d'acord amb els criteris temporals del sprint 2.
+- RF-31: El sistema tasks_app HA DE mostrar al resum el nombre de tasques pendents urgents, d'acord amb els criteris temporals del sprint 2.
+- RF-32: El sistema tasks_app HA DE excloure del recompte de tasques caducades i urgents les tasques amb estat `completada`.
+- RF-33: El sistema tasks_app HA DE donar a l'estudiant la possibilitat de filtrar les tasques per assignatura mitjançant `list --subject ASSIGNATURA`.
+- RF-34: Quan s'indica `list --subject ASSIGNATURA`, el sistema tasks_app HA DE comparar el valor amb l'assignatura de cada tasca sense tenir en compte majúscules i minúscules i només amb coincidència exacta.
+- RF-35: El sistema tasks_app HA DE donar a l'estudiant la possibilitat de cercar tasques per paraula clau al títol mitjançant `list --keyword PARAULA`.
+- RF-36: Quan s'indica `list --keyword PARAULA`, el sistema tasks_app HA DE comparar el valor amb el títol de cada tasca sense tenir en compte majúscules i minúscules i admetent coincidències parcials.
+- RF-37: Quan s'indiquen alhora `--subject ASSIGNATURA` i `--keyword PARAULA`, el sistema tasks_app HA DE mostrar només les tasques que compleixen ambdues condicions.
+- RF-38: Quan `list --summary` es combina amb `--subject ASSIGNATURA` o `--keyword PARAULA`, el sistema tasks_app HA DE mostrar el missatge `Error: --summary no es pot combinar amb --subject ni --keyword.` sense mostrar cap resum ni llistat.
+- RF-39: Quan una consulta amb filtres no troba cap tasca, el sistema tasks_app HA DE mostrar el missatge `No s'han trobat tasques que compleixin els filtres.`
+- RF-40: El sistema tasks_app HA DE mostrar les tasques filtrades amb el mateix format de línia i les mateixes etiquetes `[CADUCADA]` i `[URGENT]` que el comandament `list` del sprint 2.
+- RF-41: El sistema tasks_app HA DE mostrar el resum amb el format exacte definit a la secció 7.3, inclòs el cas de registre buit amb tots els recomptes a zero.
+- RF-42: El sistema tasks_app HA DE mantenir `data/tasks.json` sense cap modificació després d'executar `list` amb `--summary`, `--subject`, `--keyword` o una combinació d'aquestes opcions.
+- RF-43: El sistema tasks_app HA DE conservar el missatge `Registre de tasques buit.` per a `list` sense opcions quan el fitxer no conté cap tasca.
+
+### 7.3 Formats exactes de sortida
+
+`list --summary` mostra exactament cinc línies de recompte precedides d'una capçalera:
+
+```
+Resum de tasques:
+- Total: <n>
+- Pendents: <n>
+- Completades: <n>
+- Caducades: <n>
+- Urgents: <n>
+```
+
+- `<n>` és un enter sense zeros a l'esquerra.
+- `Caducades` i `Urgents` compten només tasques pendents: una tasca completada amb data límit passada no incrementa aquests recomptes.
+- Si el registre és buit, els cinc recomptes són `0` i el resum es mostra igualment.
+
+`list --subject ASSIGNATURA`, `list --keyword PARAULA` i la combinació d'ambdues opcions mostren les línies de resultat amb el format de la secció 6.4, sense cap capçalera addicional:
+
+```
+[<id>] <títol> (<assignatura>) - estat: <estat>
+[<id>] <títol> (<assignatura>) - estat: <estat> - data límit: <YYYY-MM-DD> [CADUCADA]
+[<id>] <títol> (<assignatura>) - estat: <estat> - data límit: <YYYY-MM-DD> [URGENT]
+```
+
+Quan una consulta amb `--subject`, `--keyword` o ambdós filtres no troba cap tasca, inclòs el cas de registre buit, es mostra exactament:
+
+```
+No s'han trobat tasques que compleixin els filtres.
+```
+
+Quan `--summary` es combina amb qualsevol filtre, es mostra exactament aquesta línia i cap altra:
+
+```
+Error: --summary no es pot combinar amb --subject ni --keyword.
+```
+
+`list` sense opcions i amb el registre buit conserva el missatge del sprint 1:
+
+```
+Registre de tasques buit.
+```
+
+### 7.4 Criteris d'acceptació (GS-23 a GS-39)
+
+Els escenaris GS-01 a GS-22 dels sprints anteriors es conserven sense canvis.
+
+- GS-23: Resum estadístic amb tasques pendents i completades
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté les tasques següents:
+
+    | id | títol      | assignatura | estat      | data_límit |
+    | 1  | Pràctica 1 | RS          | pendent    | 2026-06-14 |
+    | 2  | Pràctica 2 | RS          | pendent    | 2026-06-16 |
+    | 3  | Apunts     | SO          | pendent    |            |
+    | 4  | Examen     | RS          | completada | 2026-06-10 |
+
+  Quan l'estudiant executa `python src/tasks_app.py list --summary`
+  Aleshores el sistema mostra:
+    "Resum de tasques:"
+    "- Total: 4"
+    "- Pendents: 3"
+    "- Completades: 1"
+    "- Caducades: 1"
+    "- Urgents: 1"
+
+- GS-24: Resum amb el registre buit
+  Atès que el fitxer `data/tasks.json` conté `[]`
+  Quan l'estudiant executa `python src/tasks_app.py list --summary`
+  Aleshores el sistema mostra:
+    "Resum de tasques:"
+    "- Total: 0"
+    "- Pendents: 0"
+    "- Completades: 0"
+    "- Caducades: 0"
+    "- Urgents: 0"
+
+- GS-25: Límits temporals al resum
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté les tasques següents:
+
+    | id | títol      | assignatura | estat      | data_límit |
+    | 1  | Avui       | RS          | pendent    | 2026-06-15 |
+    | 2  | Sis dies   | RS          | pendent    | 2026-06-21 |
+    | 3  | Set dies   | SO          | pendent    | 2026-06-22 |
+    | 4  | Feta       | SO          | completada | 2026-06-16 |
+
+  Quan l'estudiant executa `python src/tasks_app.py list --summary`
+  Aleshores el sistema mostra:
+    "Resum de tasques:"
+    "- Total: 4"
+    "- Pendents: 3"
+    "- Completades: 1"
+    "- Caducades: 0"
+    "- Urgents: 2"
+
+- GS-26: Resum sense modificar les dades
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté una tasca amb `id` 1, `títol` `Pràctica 1`, `assignatura` `RS`, `estat` `pendent` i `data_límit` `2026-06-16`
+  Quan l'estudiant executa `python src/tasks_app.py list --summary`
+  Aleshores el sistema mostra:
+    "Resum de tasques:"
+    "- Total: 1"
+    "- Pendents: 1"
+    "- Completades: 0"
+    "- Caducades: 0"
+    "- Urgents: 1"
+  I el fitxer `data/tasks.json` roman byte a byte sense cap modificació.
+
+- GS-27: Filtratge per assignatura exacte i insensible a majúscules
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté les tasques següents:
+
+    | id | títol      | assignatura | estat   | data_límit |
+    | 1  | Pràctica 1 | RS          | pendent | 2026-06-14 |
+    | 2  | Pràctica 2 | rs          | pendent | 2026-06-20 |
+    | 3  | Examen     | SO          | pendent |            |
+
+  Quan l'estudiant executa `python src/tasks_app.py list --subject rs`
+  Aleshores el sistema mostra:
+    "[1] Pràctica 1 (RS) - estat: pendent - data límit: 2026-06-14 [CADUCADA]"
+    "[2] Pràctica 2 (rs) - estat: pendent - data límit: 2026-06-20 [URGENT]"
+  I no mostra la tasca amb assignatura `SO`.
+
+- GS-28: Filtratge per assignatura sense coincidències
+  Atès que el fitxer `data/tasks.json` conté una tasca amb `assignatura` `SO`
+  Quan l'estudiant executa `python src/tasks_app.py list --subject RS`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+
+- GS-29: Filtratge per assignatura amb el registre buit
+  Atès que el fitxer `data/tasks.json` conté `[]`
+  Quan l'estudiant executa `python src/tasks_app.py list --subject RS`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+
+- GS-30: Cerca per paraula clau parcial i insensible a majúscules
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté les tasques següents:
+
+    | id | títol                | assignatura | estat   | data_límit |
+    | 1  | Pràctica de Xarxes   | RS          | pendent | 2026-06-16 |
+    | 2  | Xarxa avançada       | SO          | pendent | 2026-06-30 |
+    | 3  | Examen               | RS          | pendent |            |
+
+  Quan l'estudiant executa `python src/tasks_app.py list --keyword xar`
+  Aleshores el sistema mostra:
+    "[1] Pràctica de Xarxes (RS) - estat: pendent - data límit: 2026-06-16 [URGENT]"
+    "[2] Xarxa avançada (SO) - estat: pendent - data límit: 2026-06-30"
+
+- GS-31: Cerca per paraula clau sense coincidències
+  Atès que el fitxer `data/tasks.json` conté tasques amb títols que no contenen `examen`
+  Quan l'estudiant executa `python src/tasks_app.py list --keyword examen`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+
+- GS-32: Cerca per paraula clau amb el registre buit
+  Atès que el fitxer `data/tasks.json` conté `[]`
+  Quan l'estudiant executa `python src/tasks_app.py list --keyword pràctica`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+
+- GS-33: Combinació de filtres amb coincidències
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté les tasques següents:
+
+    | id | títol      | assignatura | estat   | data_límit |
+    | 1  | Pràctica 1 | RS          | pendent | 2026-06-14 |
+    | 2  | Pràctica 2 | RS          | pendent | 2026-06-20 |
+    | 3  | Pràctica 3 | SO          | pendent |            |
+    | 4  | Examen     | RS          | pendent |            |
+
+  Quan l'estudiant executa `python src/tasks_app.py list --subject rs --keyword pràctica`
+  Aleshores el sistema mostra:
+    "[1] Pràctica 1 (RS) - estat: pendent - data límit: 2026-06-14 [CADUCADA]"
+    "[2] Pràctica 2 (RS) - estat: pendent - data límit: 2026-06-20 [URGENT]"
+  I no mostra les tasques 3 i 4.
+
+- GS-34: Combinació de filtres sense coincidències
+  Atès que el fitxer `data/tasks.json` conté les tasques següents:
+
+    | id | títol      | assignatura | estat   | data_límit |
+    | 1  | Pràctica 1 | RS          | pendent |            |
+    | 2  | Examen     | SO          | pendent |            |
+
+  Quan l'estudiant executa `python src/tasks_app.py list --subject so --keyword pràctica`
+  Aleshores el sistema mostra `No s'han trobat tasques que compleixin els filtres.`
+
+- GS-35: Resum combinat amb filtre per assignatura
+  Atès que el fitxer `data/tasks.json` conté una tasca amb `assignatura` `RS`
+  Quan l'estudiant executa `python src/tasks_app.py list --summary --subject RS`
+  Aleshores el sistema mostra `Error: --summary no es pot combinar amb --subject ni --keyword.`
+  I no mostra cap resum ni cap línia de llistat.
+
+- GS-36: Resum combinat amb cerca per paraula clau
+  Atès que el fitxer `data/tasks.json` conté una tasca amb `títol` `Pràctica 1`
+  Quan l'estudiant executa `python src/tasks_app.py list --summary --keyword pràctica`
+  Aleshores el sistema mostra `Error: --summary no es pot combinar amb --subject ni --keyword.`
+  I no mostra cap resum ni cap línia de llistat.
+
+- GS-37: Resum combinat amb ambdós filtres
+  Atès que el fitxer `data/tasks.json` conté una tasca amb `assignatura` `RS` i `títol` `Pràctica 1`
+  Quan l'estudiant executa `python src/tasks_app.py list --summary --subject RS --keyword pràctica`
+  Aleshores el sistema mostra `Error: --summary no es pot combinar amb --subject ni --keyword.`
+  I no mostra cap resum ni cap línia de llistat.
+
+- GS-38: Conservació del format i les etiquetes en resultats filtrats
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté les tasques següents:
+
+    | id | títol      | assignatura | estat      | data_límit |
+    | 1  | Caducada   | RS          | pendent    | 2026-06-14 |
+    | 2  | Feta       | RS          | completada | 2026-06-10 |
+    | 3  | Sense data | RS          | pendent    |            |
+
+  Quan l'estudiant executa `python src/tasks_app.py list --subject rs`
+  Aleshores el sistema mostra:
+    "[1] Caducada (RS) - estat: pendent - data límit: 2026-06-14 [CADUCADA]"
+    "[2] Feta (RS) - estat: completada - data límit: 2026-06-10"
+    "[3] Sense data (RS) - estat: pendent"
+  I cap línia inclou una capçalera addicional.
+
+- GS-39: Consultes amb filtres sense modificar les dades
+  Atès que el fitxer `data/tasks.json` conté una tasca amb `assignatura` `RS` i `títol` `Pràctica 1`
+  Quan l'estudiant executa `python src/tasks_app.py list --subject rs --keyword pràctica`
+  Aleshores el sistema mostra la tasca coincident amb el format del sprint 2
+  I el fitxer `data/tasks.json` roman byte a byte sense cap modificació.
+
+### 7.5 Data de referència, aïllament i no modificació
+
+Tots els escenaris GS-23 a GS-39 fixen la data de referència amb `TASKS_TODAY=2026-06-15` quan la sortida depèn de dates, reutilitzant els límits de la secció 6.5: caducada el 2026-06-14, urgent del 2026-06-15 al 2026-06-21, i sense etiqueta a partir del 2026-06-22. Cap escenari modifica el rellotge del sistema.
+
+Les proves s'executen sobre una còpia aïllada de `data/tasks.json`, d'acord amb les directives de dates d'`AGENTS.md`. Les operacions de consulta (`--summary`, `--subject`, `--keyword` i les seves combinacions) són de només lectura: no han de crear, reescriure ni reordenar el fitxer de dades.
