@@ -96,7 +96,7 @@ Els requisits RF-05 a RF-25 segueixen rigorosament la plantilla SOPHIST (Funktio
 - RF-22: Quan una tasca no té data límit, el sistema tasks_app HA DE mostrar la línia corresponent del comandament `list` sense les etiquetes `[URGENT]` ni `[CADUCADA]`.
 - RF-23: Quan una tasca té l'estat `completada`, el sistema tasks_app HA DE mostrar la línia corresponent del comandament `list` sense les etiquetes `[URGENT]` ni `[CADUCADA]`.
 - RF-24: Quan una tasca pendent té una data límit exactament set dies posterior a la data de referència, el sistema tasks_app HA DE mostrar la línia corresponent del comandament `list` sense l'etiqueta `[URGENT]`.
-- RF-25: El sistema tasks_app HA DE fer servir el valor de la variable d'entorn `TASKS_TODAY`, amb format `YYYY-MM-DD`, com a data de referència per a les comprovacions d'urgència i caducitat.
+- RF-25: El sistema tasks_app HA DE fer servir el valor de la variable d'entorn `TASKS_TODAY`, amb format `YYYY-MM-DD`, com a data de referència per a les comprovacions d'urgència i caducitat. Quan `TASKS_TODAY` no està definida, el sistema tasks_app HA DE fer servir la data actual del sistema com a data de referència per a les comprovacions d'urgència i caducitat.
 
 ### 6.4 Format de comandaments i sortides
 - `add --title <títol> --subject <assignatura> [--due YYYY-MM-DD]`: confirma amb `Tasca [ID: <id>] creada amb èxit` també quan s'indica data límit.
@@ -107,7 +107,7 @@ Els requisits RF-05 a RF-25 segueixen rigorosament la plantilla SOPHIST (Funktio
 - Les tasques sense data límit i les tasques completades no porten cap etiqueta, encara que la data límit hagi passat.
 
 ### 6.5 Data de referència controlada
-Tots els escenaris temporals fixen la data de referència amb `TASKS_TODAY=2026-06-15`. Això dona els límits següents:
+Tots els escenaris temporals fixen la data de referència amb `TASKS_TODAY=2026-06-15`, llevat de GS-22, que comprova el comportament per defecte sense definir la variable. Això dona els límits següents:
 
 | Concepte            | Data       | Condició                                  |
 | ------------------- | ---------- | ----------------------------------------- |
@@ -119,7 +119,9 @@ Tots els escenaris temporals fixen la data de referència amb `TASKS_TODAY=2026-
 
 Les proves s'executen sobre una còpia aïllada de `data/tasks.json` i no alteren les dades originals de l'aplicació.
 
-### 6.6 Criteris d'acceptació (GS-04 a GS-19)
+Per a GS-22, `TASKS_TODAY` no es defineix i no es modifica el rellotge del sistema: la data límit fixa `1970-01-01` garanteix una classificació estable com a caducada.
+
+### 6.6 Criteris d'acceptació (GS-04 a GS-22)
 
 - GS-04: Creació d'una tasca amb data límit
   Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
@@ -279,3 +281,37 @@ Les proves s'executen sobre una còpia aïllada de `data/tasks.json` i no altere
   Quan l'estudiant executa `python src/tasks_app.py list`
   Aleshores el sistema mostra `[1] Pràctica 1 (RS) - estat: pendent - data límit: 2026-06-20 [URGENT]`
   I el resultat no depèn de la data real del sistema.
+
+- GS-20: Modificació amb una data límit invàlida
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté la tasca següent:
+
+    | id | títol      | assignatura | estat   | data_límit |
+    | 1  | Pràctica 1 | RS          | pendent | 2026-06-20 |
+
+  Quan l'estudiant executa `python src/tasks_app.py edit --id 1 --due 2026-02-30`
+  Aleshores el sistema mostra `Error: data límit no vàlida. Format esperat: YYYY-MM-DD.`
+  I el fitxer `data/tasks.json` roman amb la mateixa tasca amb `id` 1, `títol` `Pràctica 1`, `assignatura` `RS`, `estat` `pendent` i `data_límit` `2026-06-20`.
+
+- GS-21: Tasca pendent amb la data límit superior a set dies
+  Atès que la data de referència controlada és `2026-06-15` (`TASKS_TODAY=2026-06-15`)
+  I el fitxer `data/tasks.json` conté la tasca següent:
+
+    | id | títol      | assignatura | estat   | data_límit |
+    | 1  | Pràctica 1 | RS          | pendent | 2026-06-23 |
+
+  Quan l'estudiant executa `python src/tasks_app.py list`
+  Aleshores el sistema mostra `[1] Pràctica 1 (RS) - estat: pendent - data límit: 2026-06-23`
+  I la línia no conté les etiquetes `[URGENT]` ni `[CADUCADA]`.
+
+- GS-22: Data de referència sense `TASKS_TODAY`
+  Atès que la variable d'entorn `TASKS_TODAY` no està definida
+  I no es modifica el rellotge del sistema
+  I el fitxer `data/tasks.json` conté la tasca següent:
+
+    | id | títol      | assignatura | estat   | data_límit |
+    | 1  | Pràctica 1 | RS          | pendent | 1970-01-01 |
+
+  Quan l'estudiant executa `python src/tasks_app.py list`
+  Aleshores el sistema mostra `[1] Pràctica 1 (RS) - estat: pendent - data límit: 1970-01-01 [CADUCADA]`
+  I el resultat prové de la data actual del sistema sense alterar el rellotge.
