@@ -19,6 +19,12 @@ ENTORN_SENSE_REFERENCIA = {
 }
 MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
 MISSATGE_ID_INVALID = "Error: no existeix la tasca amb ID 99."
+MISSATGE_SENSE_COINCIDENCIES = (
+    "No s'han trobat tasques que compleixin els filtres."
+)
+MISSATGE_RESUM_FILTRES = (
+    "Error: --summary no es pot combinar amb --subject ni --keyword."
+)
 
 
 @pytest.fixture
@@ -84,6 +90,60 @@ def comprovar_llistat(
     sortida = executar_cli(directori, "list", entorn=entorn)
     assert sortida == esperat
     assert ruta_dades.read_bytes() == original
+
+
+def resum(total, pendents, completades, caducades, urgents):
+    return "\n".join(
+        [
+            "Resum de tasques:",
+            f"- Total: {total}",
+            f"- Pendents: {pendents}",
+            f"- Completades: {completades}",
+            f"- Caducades: {caducades}",
+            f"- Urgents: {urgents}",
+        ]
+    )
+
+
+def comprovar_consulta(
+    directori,
+    ruta_dades,
+    tasques,
+    arguments,
+    esperat,
+    entorn=ENTORN_REFERENCIA,
+):
+    escriure_dades(ruta_dades, tasques)
+    original = ruta_dades.read_bytes()
+    sortida = executar_cli(directori, "list", *arguments, entorn=entorn)
+    assert sortida == esperat
+    assert ruta_dades.read_bytes() == original
+
+
+def comprovar_inicialitzacio(directori, ruta_dades, arguments, esperat):
+    if ruta_dades.exists():
+        ruta_dades.unlink()
+    sortida = executar_cli(
+        directori,
+        "list",
+        *arguments,
+        entorn=ENTORN_REFERENCIA,
+    )
+    assert sortida == esperat
+    assert ruta_dades.read_text(encoding="utf-8") == "[]"
+
+
+def comprovar_rebuig_abans_json(directori, ruta_dades, arguments):
+    if ruta_dades.exists():
+        ruta_dades.unlink()
+    sortida = executar_cli(
+        directori,
+        "list",
+        *arguments,
+        entorn=ENTORN_REFERENCIA,
+    )
+    assert sortida == MISSATGE_RESUM_FILTRES
+    assert not ruta_dades.exists()
 
 
 def test_gs01_creacio_correcta_duna_tasca(projecte_aillat):
@@ -468,4 +528,329 @@ def test_gs22_sense_tasks_today(projecte_aillat):
             "- data límit: 1970-01-01 [CADUCADA]"
         ),
         entorn=ENTORN_SENSE_REFERENCIA,
+    )
+
+
+def test_gs23_resum_estadistic(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [
+            tasca(1, "Pràctica 1", "RS", "pendent", "2026-06-14"),
+            tasca(2, "Pràctica 2", "RS", "pendent", "2026-06-16"),
+            tasca(3, "Apunts", "SO", "pendent"),
+            tasca(4, "Examen", "RS", "completada", "2026-06-10"),
+        ],
+        ("--summary",),
+        resum(4, 3, 1, 1, 1),
+    )
+
+
+def test_gs24_resum_registre_buit(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [],
+        ("--summary",),
+        resum(0, 0, 0, 0, 0),
+    )
+
+
+def test_gs25_limits_temporals_al_resum(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [
+            tasca(1, "Avui", "RS", "pendent", "2026-06-15"),
+            tasca(2, "Sis dies", "RS", "pendent", "2026-06-21"),
+            tasca(3, "Set dies", "SO", "pendent", "2026-06-22"),
+            tasca(4, "Feta", "SO", "completada", "2026-06-16"),
+        ],
+        ("--summary",),
+        resum(4, 3, 1, 0, 2),
+    )
+
+
+def test_gs26_resum_sense_modificar_dades(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [tasca(1, "Pràctica 1", "RS", "pendent", "2026-06-16")],
+        ("--summary",),
+        resum(1, 1, 0, 0, 1),
+    )
+
+
+def test_gs27_filtre_assignatura_exacte(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [
+            tasca(1, "Pràctica 1", "RS", "pendent", "2026-06-14"),
+            tasca(2, "Pràctica 2", "rs", "pendent", "2026-06-20"),
+            tasca(3, "Examen", "SO", "pendent"),
+            tasca(4, "Pràctica 4", "RST", "pendent"),
+        ],
+        ("--subject", "rs"),
+        (
+            "[1] Pràctica 1 (RS) - estat: pendent "
+            "- data límit: 2026-06-14 [CADUCADA]\n"
+            "[2] Pràctica 2 (rs) - estat: pendent "
+            "- data límit: 2026-06-20 [URGENT]"
+        ),
+    )
+
+
+def test_gs28_filtre_assignatura_sense_coincidencies(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [tasca(1, "Examen", "SO", "pendent")],
+        ("--subject", "RS"),
+        MISSATGE_SENSE_COINCIDENCIES,
+    )
+
+
+def test_gs29_filtre_assignatura_registre_buit(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [],
+        ("--subject", "RS"),
+        MISSATGE_SENSE_COINCIDENCIES,
+    )
+
+
+def test_gs30_cerca_paraula_clau_parcial(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [
+            tasca(1, "Pràctica de Xarxes", "RS", "pendent", "2026-06-16"),
+            tasca(2, "Xarxa avançada", "SO", "pendent", "2026-06-30"),
+            tasca(3, "Examen", "RS", "pendent"),
+        ],
+        ("--keyword", "xar"),
+        (
+            "[1] Pràctica de Xarxes (RS) - estat: pendent "
+            "- data límit: 2026-06-16 [URGENT]\n"
+            "[2] Xarxa avançada (SO) - estat: pendent "
+            "- data límit: 2026-06-30"
+        ),
+    )
+
+
+def test_gs31_cerca_paraula_clau_sense_coincidencies(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [tasca(1, "Pràctica 1", "RS", "pendent")],
+        ("--keyword", "examen"),
+        MISSATGE_SENSE_COINCIDENCIES,
+    )
+
+
+def test_gs32_cerca_paraula_clau_registre_buit(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [],
+        ("--keyword", "pràctica"),
+        MISSATGE_SENSE_COINCIDENCIES,
+    )
+
+
+def test_gs33_combinacio_filtres_amb_coincidencies(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    tasques = [
+        tasca(1, "Pràctica 1", "RS", "pendent", "2026-06-14"),
+        tasca(2, "Pràctica 2", "RS", "pendent", "2026-06-20"),
+        tasca(3, "Pràctica 3", "SO", "pendent"),
+        tasca(4, "Examen", "RS", "pendent"),
+    ]
+    esperat = (
+        "[1] Pràctica 1 (RS) - estat: pendent "
+        "- data límit: 2026-06-14 [CADUCADA]\n"
+        "[2] Pràctica 2 (RS) - estat: pendent "
+        "- data límit: 2026-06-20 [URGENT]"
+    )
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        tasques,
+        ("--subject", "rs", "--keyword", "pràctica"),
+        esperat,
+    )
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        tasques,
+        ("--keyword", "pràctica", "--subject", "rs"),
+        esperat,
+    )
+
+
+def test_gs34_combinacio_filtres_sense_coincidencies(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [
+            tasca(1, "Pràctica 1", "RS", "pendent"),
+            tasca(2, "Examen", "SO", "pendent"),
+        ],
+        ("--subject", "so", "--keyword", "pràctica"),
+        MISSATGE_SENSE_COINCIDENCIES,
+    )
+
+
+def test_gs35_resum_amb_filtre_assignatura(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    tasques = [tasca(1, "Pràctica 1", "RS", "pendent")]
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        tasques,
+        ("--summary", "--subject", "RS"),
+        MISSATGE_RESUM_FILTRES,
+    )
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        tasques,
+        ("--subject", "RS", "--summary"),
+        MISSATGE_RESUM_FILTRES,
+    )
+    comprovar_rebuig_abans_json(
+        directori,
+        ruta_dades,
+        ("--summary", "--subject", "RS"),
+    )
+
+
+def test_gs36_resum_amb_cerca_paraula_clau(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    tasques = [tasca(1, "Pràctica 1", "RS", "pendent")]
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        tasques,
+        ("--summary", "--keyword", "pràctica"),
+        MISSATGE_RESUM_FILTRES,
+    )
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        tasques,
+        ("--keyword", "pràctica", "--summary"),
+        MISSATGE_RESUM_FILTRES,
+    )
+    comprovar_rebuig_abans_json(
+        directori,
+        ruta_dades,
+        ("--summary", "--keyword", "pràctica"),
+    )
+
+
+def test_gs37_resum_amb_ambdos_filtres(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    tasques = [tasca(1, "Pràctica 1", "RS", "pendent")]
+    for arguments in (
+        ("--summary", "--subject", "RS", "--keyword", "pràctica"),
+        ("--subject", "RS", "--keyword", "pràctica", "--summary"),
+        ("--keyword", "pràctica", "--summary", "--subject", "RS"),
+    ):
+        comprovar_consulta(
+            directori,
+            ruta_dades,
+            tasques,
+            arguments,
+            MISSATGE_RESUM_FILTRES,
+        )
+    comprovar_rebuig_abans_json(
+        directori,
+        ruta_dades,
+        ("--summary", "--subject", "RS", "--keyword", "pràctica"),
+    )
+
+
+def test_gs38_format_i_etiquetes_en_resultats_filtrats(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [
+            tasca(1, "Caducada", "RS", "pendent", "2026-06-14"),
+            tasca(2, "Feta", "RS", "completada", "2026-06-10"),
+            tasca(3, "Sense data", "RS", "pendent"),
+        ],
+        ("--subject", "rs"),
+        (
+            "[1] Caducada (RS) - estat: pendent "
+            "- data límit: 2026-06-14 [CADUCADA]\n"
+            "[2] Feta (RS) - estat: completada "
+            "- data límit: 2026-06-10\n"
+            "[3] Sense data (RS) - estat: pendent"
+        ),
+    )
+
+
+def test_gs39_filtres_sense_modificar_dades(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_consulta(
+        directori,
+        ruta_dades,
+        [tasca(1, "Pràctica 1", "RS", "pendent")],
+        ("--subject", "rs", "--keyword", "pràctica"),
+        "[1] Pràctica 1 (RS) - estat: pendent",
+    )
+
+
+def test_gs40_inicialitzacio_amb_resum(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_inicialitzacio(
+        directori,
+        ruta_dades,
+        ("--summary",),
+        resum(0, 0, 0, 0, 0),
+    )
+
+
+def test_gs41_inicialitzacio_amb_filtre_assignatura(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_inicialitzacio(
+        directori,
+        ruta_dades,
+        ("--subject", "RS"),
+        MISSATGE_SENSE_COINCIDENCIES,
+    )
+
+
+def test_gs42_inicialitzacio_amb_paraula_clau(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_inicialitzacio(
+        directori,
+        ruta_dades,
+        ("--keyword", "pràctica"),
+        MISSATGE_SENSE_COINCIDENCIES,
+    )
+
+
+def test_gs43_inicialitzacio_amb_filtres_combinats(projecte_aillat):
+    directori, ruta_dades = projecte_aillat
+    comprovar_inicialitzacio(
+        directori,
+        ruta_dades,
+        ("--subject", "RS", "--keyword", "pràctica"),
+        MISSATGE_SENSE_COINCIDENCIES,
     )
