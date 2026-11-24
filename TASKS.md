@@ -36,7 +36,7 @@ Dependències: model/persistència → dates → edició → finalització → e
 
 - [x] Tasca 2.2: Incorporació i validació de dates límit: acceptar `--due YYYY-MM-DD` a `add`, conservar el missatge de confirmació i rebutjar formats incorrectes o dates inexistents sense desar res. (Requisits RF-06, RF-07, RF-10 i RF-11; escenaris GS-04, GS-06, GS-07 i GS-20)
 
-- [ ] Tasca 2.3: Implementació de la modificació de tasques: afegir `edit --id ID` per a `--title`, `--subject`, `--due` i `--status`, mantenir l'ID i els camps no indicats, i gestionar identificadors inexistents. (Requisits RF-12, RF-13, RF-14, RF-15, RF-18 i RF-19; escenaris GS-08, GS-09, GS-10 i GS-20)
+- [x] Tasca 2.3: Implementació de la modificació de tasques: afegir `edit --id ID` per a `--title`, `--subject`, `--due` i `--status`, mantenir l'ID i els camps no indicats, i gestionar identificadors inexistents. (Requisits RF-12, RF-13, RF-14, RF-15, RF-18 i RF-19; escenaris GS-08, GS-09, GS-10 i GS-20)
 
 - [ ] Tasca 2.4: Implementació de la finalització de tasques: afegir `complete --id ID` per a establir l'estat `completada` i gestionar identificadors inexistents sense modificar les dades. (Requisits RF-16, RF-17, RF-18 i RF-19; escenaris GS-11 i GS-12)
 

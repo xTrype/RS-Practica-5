@@ -12,6 +12,8 @@ except ImportError:
 RUTA_ARREL = Path(__file__).resolve().parent.parent
 RUTA_DADES = RUTA_ARREL / "data" / "tasks.json"
 MISSATGE_DATA_INVALIDA = "Error: data límit no vàlida. Format esperat: YYYY-MM-DD."
+MISSATGE_ESTAT_INVALID = "Error: estat no vàlid. Valors permesos: pendent, completada."
+ESTATS = ("pendent", "completada")
 
 
 def es_data_valida(cadena):
@@ -62,6 +64,39 @@ def afegir_tasca(títol, assignatura, data_límit=None):
     print(f"Tasca [ID: {tasca.id}] creada amb èxit")
 
 
+def modificar_tasca(
+    identificador,
+    títol=None,
+    assignatura=None,
+    data_límit=None,
+    estat=None,
+):
+    if data_límit is not None and not es_data_valida(data_límit):
+        print(MISSATGE_DATA_INVALIDA)
+        return
+    if estat is not None and estat not in ESTATS:
+        print(MISSATGE_ESTAT_INVALID)
+        return
+    tasques = carregar_tasques()
+    tasca = next(
+        (element for element in tasques if element.id == identificador),
+        None,
+    )
+    if tasca is None:
+        print(f"Error: no existeix la tasca amb ID {identificador}.")
+        return
+    if títol is not None:
+        tasca.títol = títol
+    if assignatura is not None:
+        tasca.assignatura = assignatura
+    if data_límit is not None:
+        tasca.data_límit = data_límit
+    if estat is not None:
+        tasca.estat = estat
+    desar_tasques(tasques)
+    print(f"Tasca [ID: {tasca.id}] actualitzada amb èxit")
+
+
 def llistar_tasques():
     tasques = carregar_tasques()
     if not tasques:
@@ -101,6 +136,32 @@ def construir_parser():
         "--due",
         help="Data límit amb format YYYY-MM-DD.",
     )
+    editar = comandaments.add_parser(
+        "edit",
+        help="Modifica una tasca existent.",
+    )
+    editar.add_argument(
+        "--id",
+        required=True,
+        type=int,
+        help="Identificador de la tasca.",
+    )
+    editar.add_argument(
+        "--title",
+        help="Nou títol de la tasca.",
+    )
+    editar.add_argument(
+        "--subject",
+        help="Nova assignatura de la tasca.",
+    )
+    editar.add_argument(
+        "--due",
+        help="Nova data límit amb format YYYY-MM-DD.",
+    )
+    editar.add_argument(
+        "--status",
+        help="Nou estat: pendent o completada.",
+    )
     comandaments.add_parser(
         "list",
         help="Mostra totes les tasques registrades.",
@@ -112,6 +173,14 @@ def main():
     arguments = construir_parser().parse_args()
     if arguments.comandament == "add":
         afegir_tasca(arguments.title, arguments.subject, arguments.due)
+    elif arguments.comandament == "edit":
+        modificar_tasca(
+            arguments.id,
+            arguments.title,
+            arguments.subject,
+            arguments.due,
+            arguments.status,
+        )
     elif arguments.comandament == "list":
         llistar_tasques()
 
