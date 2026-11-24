@@ -8,11 +8,15 @@
 ## Comandes de Desenvolupament
 - Executar aplicació: `python3 src/tasks_app.py`
 - Executar tots els tests: `python3 -m pytest test`
-- Executar test únic: `python3 -m pytest test/test_task.py`
+- Executar test únic: `python3 -m pytest test/test_tasks_app.py`
 
 ## Convencions de Codi
 - Estil: PEP8.
 - Idioma del codi i comentaris: Català (mantenir consistència en noms de variables).
+
+## Directives per a les proves de dates
+- Les proves amb dates límit han de ser deterministes: han de fixar la data de referència amb la variable d'entorn `TASKS_TODAY` (format `YYYY-MM-DD`) i no han de dependre de la data real del sistema.
+- Les proves no han d'alterar les dades originals de l'aplicació: han d'operar sobre una còpia aïllada de `data/tasks.json` (per exemple, dins de `tmp_path`) i restaurar qualsevol fitxer modificat.
 
 ## Regles de Gestió de Tasques (`TASKS.md`)
 1. Llegeix `TASKS.md` i identifica la següent tasca amb estat `[ ]`.
